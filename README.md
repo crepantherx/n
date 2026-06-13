@@ -18,6 +18,7 @@ A local web dashboard for managing Naukri profile updates, Naukri applications, 
 - Added emergency Stop All controls plus `stop_all.sh` / `stop_all.bat` to kill dashboard/task processes, free port 8787, remove suite cron entries, and disable/clear saved schedules.
 - Reduced login/dashboard polling and heavy blur effects to prevent the high-frequency stutter/refresh behavior.
 
+
 ## Requirements
 
 - Python 3.10, 3.11, or 3.12.
