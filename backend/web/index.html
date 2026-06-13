@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Applications</title>
+  <link rel="stylesheet" href="/styles.css?v=2" />
+  <script>
+    // Apply theme immediately to prevent flashing
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    }
+  </script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="/googleDrive.js?v=2"></script>
+  <script src="/attach_drive_sync.js?v=3"></script>
+</head>
+
+<body>
+  <div id="app" class="app">
+    <header class="topbar">
+      <div class="brand" onclick="switchTab('agents')" style="cursor: pointer;">
+        <div class="brand__dot"></div>
+        <div>
+          <div class="brand__title">Jobs</div>
+          <!-- <div class="brand__subtitle">Web dashboard (self-hosted)</div> -->
+        </div>
+      </div>
+      <nav class="tabbar">
+        <button class="tab tab--active" data-tab="agents">🤖 Appliers</button>
+        <button class="tab" data-tab="applications">Applied</button>
+        <button class="tab" data-tab="outreach">Scraper</button>
+        <div style="width: 1px; height: 16px; background: var(--border); margin: 0 4px;"></div>
+        <button class="tab" data-tab="agent">AI Agent</button>
+      </nav>
+
+      <div class="topbar__right">
+        <div style="width: 1px; height: 20px; background: var(--border); margin: 0 8px 0 0;" class="theme-divider">
+        </div>
+        <button id="themeToggleBtn" class="topbar-icon-btn" title="Toggle dark mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="theme-icon">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
+        </button>
+        <div style="position: relative;" id="driveSyncMenuContainer">
+          <button id="syncTopbarBtn" class="topbar-icon-btn" title="Google Drive Sync"
+            onclick="document.getElementById('driveSyncPopup').style.display = document.getElementById('driveSyncPopup').style.display === 'none' ? 'block' : 'none'; event.stopPropagation();">
+            <div style="display: flex; align-items: center; justify-content: center;">
+              <!-- Combined Cloud + Sync Icon -->
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="overflow: visible;">
+                <defs>
+                  <mask id="cloud-cutout" maskUnits="userSpaceOnUse" x="-10" y="-10" width="44" height="44">
+                    <rect x="-10" y="-10" width="44" height="44" fill="white" />
+                    <circle cx="18" cy="18" r="6.5" fill="black" />
+                  </mask>
+                </defs>
+                <path d="M17.5 19A4.5 4.5 0 0 0 18 10h-.5a7.1 7.1 0 0 0-14 0A4.5 4.5 0 0 0 4.5 19H17.5Z"
+                  mask="url(#cloud-cutout)" />
+                <svg x="12" y="12" width="12" height="12" viewBox="0 0 24 24" overflow="visible">
+                  <g id="driveSyncBadge" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition: stroke 0.3s ease; transform-origin: center; transform-box: fill-box;">
+                    <!-- First Arrow -->
+                    <g>
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                    </g>
+                    <!-- Second Arrow -->
+                    <g transform="rotate(180 12 12)">
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                    </g>
+                  </g>
+                </svg>
+              </svg>
+            </div>
+          </button>
+
+          <div id="driveSyncPopup" class="drive-sync-popup animate-fade-in-down"
+            style="display: none; background: #0f172a; border: 1px solid #1e293b; color: #e2e8f0; width: 320px; z-index: 9999;">
+            <h2
+              style="font-size: 15px; font-weight: 600; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: #f8fafc;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.5 19A4.5 4.5 0 0 0 18 10h-.5a7.1 7.1 0 0 0-14 0A4.5 4.5 0 0 0 4.5 19H17.5Z" />
+              </svg>
+              Cloud Sync
+            </h2>
+
+            <div id="driveSyncNotConnected"
+              style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; border-radius: 12px; background: #1e293b; text-align: center;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3M1 1l22 22" />
+              </svg>
+              <div>
+                <h3 style="font-size: 14px; font-weight: 500; margin: 0; color: #f8fafc;">Not Connected</h3>
+                <p style="font-size: 12px; color: #94a3b8; margin: 6px 0 14px 0;">Connect your Google Drive to safely
+                  backup and restore your configurations.</p>
+              </div>
+              <button id="driveSyncConnectBtn" onclick="window.driveSyncApi.connect()"
+                style="padding: 8px 16px; font-size: 13px; font-weight: 500; color: #f8fafc; background: transparent; border: 1px solid #334155; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Connect
+                Google Drive</button>
+            </div>
+
+            <div id="driveSyncConnected"
+              style="display: none; padding: 16px; border-radius: 12px; background: #1e293b;">
+              <div style="display: flex; align-items: center; gap: 8px; color: #10b981; margin-bottom: 16px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span style="font-size: 14px; font-weight: 500;">Connected to Google Drive</span>
+              </div>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <button id="driveSyncBackupBtn" onclick="window.driveSyncApi.backup()"
+                  style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-size: 13px; font-weight: 500; color: white; background: #6366f1; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg> Backup
+                </button>
+                <button id="driveSyncRestoreBtn" onclick="window.driveSyncApi.restore()"
+                  style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-size: 13px; font-weight: 500; color: #f8fafc; background: #334155; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg> Restore
+                </button>
+              </div>
+              <button id="driveSyncDisconnectBtn" onclick="window.driveSyncApi.disconnect()"
+                style="width: 100%; padding: 8px; font-size: 13px; font-weight: 500; color: #94a3b8; background: none; border: none; cursor: pointer; border-radius: 8px; transition: all 0.2s;">Disconnect</button>
+            </div>
+
+            <div
+              style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #334155; display: flex; align-items: flex-start; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin: 0;">
+                <strong style="color: #cbd5e1;">Privacy & Security:</strong> Connecting to Google Drive is optional.
+                Your data is strictly stored locally unless synced. Google's privacy policies use a restricted scope
+                that only allows this app to save and read its own specific backup file—no personal information can be
+                read by this app.
+              </p>
+            </div>
+          </div>
+        </div>
+        <button id="panicStopBtn" class="btn btn--danger btn--sm" type="button" title="Stop all app tasks and schedules now">Stop All</button>
+        <button id="quitDashboardBtn" class="btn btn--ghost btn--sm" type="button" title="Stop all tasks, clear schedules, and shut down port 8787">Quit</button>
+        <button id="settingsTopbarBtn" class="topbar-icon-btn" title="Settings" onclick="switchTab('settings')">
+          <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="1.8"
+            viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+        <button id="logoutBtn" class="topbar-icon-btn topbar-icon-btn--danger" style="display: none;" title="Logout">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" x2="9" y1="12" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="cloudBanner" class="cloud-banner" style="display:none">
+      <strong>Vercel cloud mode:</strong> the dashboard is hosted serverlessly. Local browser automation, background schedulers, system cron, WebSockets, and dashboard shutdown are disabled here. Use Vercel Cron as a daily health trigger or the included GitHub Actions worker for real scheduled runs.
+    </div>
+
+    <main class="main">
+      <div id="page-agents" class="page page--active">
+        <div class="sub-tabbar-container" style="margin-bottom: 16px;">
+          <nav class="tabbar tabbar--scrollable sub-tabbar">
+            <button class="sub-tab tab tab--active" data-subtab="naukri">🇮🇳 Naukri</button>
+            <button class="sub-tab tab" data-subtab="linkedin">💼 LinkedIn</button>
+            <button class="sub-tab tab" data-subtab="intl_linkedin">🌐 Intl LinkedIn</button>
+            <button class="sub-tab tab" data-subtab="intl_indeed">🇪🇺 Indeed</button>
+            <button class="sub-tab tab" data-subtab="intl_reed">🇬🇧 Reed</button>
+            <button class="sub-tab tab" data-subtab="intl_crawler">🕸️ Crawler</button>
+            <button class="sub-tab tab" data-subtab="bot">🔄 Updater</button>
+          </nav>
+        </div>
+
+        <div id="subpage-naukri" class="subpage subpage--active">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">Job Applier (Naukri)</div>
+                    <div class="card__subtitle">Apply to jobs automatically</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select id="region-naukri" class="region-picker" data-task="naukri">
+                      <option value="Indian">🇮🇳 Indian</option>
+                      <option value="European">🇪🇺 European</option>
+                      <option value="North American">🇺🇸 N. American</option>
+                      <option value="Australian">🇦🇺 Australian</option>
+                      <option value="Asian">🇸🇬 Asian</option>
+                      <option value="Middle East">🇦🇪 Middle East</option>
+                    </select>
+                    <div id="status-naukri" class="pill pill--muted">Idle</div>
+                  </div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+                      <span class="field__label" style="margin: 0;">Target:</span>
+                      <input id="target-naukri" class="input" type="number" min="1" max="2000" value="30"
+                        style="width: 70px; padding: 4px 8px; min-height: 32px;" />
+                    </label>
+                    <label class="toggle" style="margin-left: 8px;">
+                      <input id="headless-naukri" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-naukri" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-naukri" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-naukri" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-naukri" class="pill pill--muted" style="font-size:10px; margin-left: 4px;">OFF
+                      </div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-naukri" class="input input--sm" type="text" placeholder="09:00, 19:00"
+                          style="width:100%" style="width: 100px; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="naukri"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-naukri" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (Naukri Applier)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-naukri" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn"
+                    data-task="naukri">Clear</button></div>
+              </div>
+              <div class="log" id="log-naukri"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="subpage-linkedin" class="subpage " style="display:none">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">LinkedIn Applier</div>
+                    <div class="card__subtitle">Easy Apply automation</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select id="region-linkedin" class="region-picker" data-task="linkedin">
+                      <option value="Indian">🇮🇳 Indian</option>
+                      <option value="European">🇪🇺 European</option>
+                      <option value="North American">🇺🇸 N. American</option>
+                      <option value="Australian">🇦🇺 Australian</option>
+                      <option value="Asian">🇸🇬 Asian</option>
+                      <option value="Middle East">🇦🇪 Middle East</option>
+                    </select>
+                    <div id="status-linkedin" class="pill pill--muted">Idle</div>
+                  </div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+                      <span class="field__label" style="margin: 0;">Target:</span>
+                      <input id="target-linkedin" class="input" type="number" min="1" max="2000" value="30"
+                        style="width: 70px; padding: 4px 8px; min-height: 32px;" />
+                    </label>
+                    <label class="toggle" style="margin-left: 8px;">
+                      <input id="headless-linkedin" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-linkedin" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-linkedin" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-linkedin" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-linkedin" class="pill pill--muted" style="font-size:10px; margin-left: 4px;">
+                        OFF</div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-linkedin" class="input input--sm" type="text" placeholder="09:00"
+                          style="width:100%" style="width: 100px; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="linkedin"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-linkedin" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (LinkedIn Applier)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-linkedin" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn"
+                    data-task="linkedin">Clear</button></div>
+              </div>
+              <div class="log" id="log-linkedin"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="subpage-intl_linkedin" class="subpage" style="display:none">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">International LinkedIn Applier</div>
+                    <div class="card__subtitle">Run LinkedIn applications with international region targeting</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select id="region-intl_linkedin" class="region-picker" data-task="intl_linkedin">
+                      <option value="Indian">🇮🇳 Indian</option>
+                      <option value="European" selected>🇪🇺 European</option>
+                      <option value="North American">🇺🇸 N. American</option>
+                      <option value="Australian">🇦🇺 Australian</option>
+                      <option value="Asian">🇸🇬 Asian</option>
+                      <option value="Middle East">🇦🇪 Middle East</option>
+                    </select>
+                    <div id="status-intl_linkedin" class="pill pill--muted">Idle</div>
+                  </div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+                      <span class="field__label" style="margin: 0;">Target:</span>
+                      <input id="target-intl_linkedin" class="input" type="number" min="1" max="200" value="15"
+                        style="width: 70px; padding: 4px 8px; min-height: 32px;" />
+                    </label>
+                    <label class="toggle" style="margin-left: 8px;">
+                      <input id="headless-intl_linkedin" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-intl_linkedin" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-intl_linkedin" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-intl_linkedin" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-intl_linkedin" class="pill pill--muted"
+                        style="font-size:10px; margin-left: 4px;">OFF</div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-intl_linkedin" class="input input--sm" type="text" placeholder="10:00"
+                          style="width:100%; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="intl_linkedin"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-intl_linkedin" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (International LinkedIn)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-intl_linkedin" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn"
+                    data-task="intl_linkedin">Clear</button></div>
+              </div>
+              <div class="log" id="log-intl_linkedin"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="subpage-intl_indeed" class="subpage " style="display:none">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">Indeed Applier</div>
+                    <div class="card__subtitle">Job search and application on Indeed</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select id="region-intl_indeed" class="region-picker" data-task="intl_indeed">
+                      <option value="Indian">🇮🇳 Indian</option>
+                      <option value="European" selected>🇪🇺 European</option>
+                      <option value="North American">🇺🇸 N. American</option>
+                      <option value="Australian">🇦🇺 Australian</option>
+                      <option value="Asian">🇸🇬 Asian</option>
+                      <option value="Middle East">🇦🇪 Middle East</option>
+                    </select>
+                    <div id="status-intl_indeed" class="pill pill--muted">Idle</div>
+                  </div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+                      <span class="field__label" style="margin: 0;">Target:</span>
+                      <input id="target-intl_indeed" class="input" type="number" min="1" max="200" value="15"
+                        style="width: 70px; padding: 4px 8px; min-height: 32px;" />
+                    </label>
+                    <label class="toggle" style="margin-left: 8px;">
+                      <input id="headless-intl_indeed" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-intl_indeed" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-intl_indeed" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-intl_indeed" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-intl_indeed" class="pill pill--muted"
+                        style="font-size:10px; margin-left: 4px;">OFF</div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-intl_indeed" class="input input--sm" type="text" placeholder="10:00"
+                          style="width:100%" style="width: 100px; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="intl_indeed"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-intl_indeed" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (Indeed Applier)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-intl_indeed" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn"
+                    data-task="intl_indeed">Clear</button></div>
+              </div>
+              <div class="log" id="log-intl_indeed"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="subpage-intl_reed" class="subpage " style="display:none">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">Reed Applier</div>
+                    <div class="card__subtitle">Reed.co.uk job applications</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select id="region-intl_reed" class="region-picker" data-task="intl_reed">
+                      <option value="Indian">🇮🇳 Indian</option>
+                      <option value="European" selected>🇪🇺 European</option>
+                      <option value="North American">🇺🇸 N. American</option>
+                      <option value="Australian">🇦🇺 Australian</option>
+                      <option value="Asian">🇸🇬 Asian</option>
+                      <option value="Middle East">🇦🇪 Middle East</option>
+                    </select>
+                    <div id="status-intl_reed" class="pill pill--muted">Idle</div>
+                  </div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+                      <span class="field__label" style="margin: 0;">Target:</span>
+                      <input id="target-intl_reed" class="input" type="number" min="1" max="200" value="15"
+                        style="width: 70px; padding: 4px 8px; min-height: 32px;" />
+                    </label>
+                    <label class="toggle" style="margin-left: 8px;">
+                      <input id="headless-intl_reed" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-intl_reed" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-intl_reed" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-intl_reed" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-intl_reed" class="pill pill--muted" style="font-size:10px; margin-left: 4px;">
+                        OFF</div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-intl_reed" class="input input--sm" type="text" placeholder="10:00"
+                          style="width:100%" style="width: 100px; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="intl_reed"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-intl_reed" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (Reed Applier)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-intl_reed" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn"
+                    data-task="intl_reed">Clear</button></div>
+              </div>
+              <div class="log" id="log-intl_reed"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="subpage-intl_crawler" class="subpage " style="display:none">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">🕸️ Career Page Crawler</div>
+                    <div class="card__subtitle">Google dorking → Greenhouse / Lever / Workday career pages</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select id="region-intl_crawler" class="region-picker" data-task="intl_crawler">
+                      <option value="Indian">🇮🇳 Indian</option>
+                      <option value="European" selected>🇪🇺 European</option>
+                      <option value="North American">🇺🇸 N. American</option>
+                      <option value="Australian">🇦🇺 Australian</option>
+                      <option value="Asian">🇸🇬 Asian</option>
+                      <option value="Middle East">🇦🇪 Middle East</option>
+                    </select>
+                    <div id="status-intl_crawler" class="pill pill--muted">Idle</div>
+                  </div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+                      <span class="field__label" style="margin: 0;">Target:</span>
+                      <input id="target-intl_crawler" class="input" type="number" min="1" max="200" value="10"
+                        style="width: 70px; padding: 4px 8px; min-height: 32px;" />
+                    </label>
+                    <label class="toggle" style="margin-left: 8px;">
+                      <input id="headless-intl_crawler" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-intl_crawler" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-intl_crawler" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-intl_crawler" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-intl_crawler" class="pill pill--muted"
+                        style="font-size:10px; margin-left: 4px;">OFF</div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-intl_crawler" class="input input--sm" type="text" placeholder="10:00"
+                          style="width:100%" style="width: 100px; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="intl_crawler"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-intl_crawler" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (Crawler)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-intl_crawler" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn"
+                    data-task="intl_crawler">Clear</button></div>
+              </div>
+              <div class="log" id="log-intl_crawler"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="subpage-bot" class="subpage " style="display:none">
+          <div class="split-layout">
+            <div class="split-top">
+              <div class="card">
+                <div class="card__header">
+                  <div>
+                    <div class="card__title">Profile Updater (Naukri)</div>
+                    <div class="card__subtitle">Update resume/headline periodically</div>
+                  </div>
+                  <div id="status-bot" class="pill pill--muted">Idle</div>
+                </div>
+                <div class="card__body">
+                  <div class="row" style="align-items: center; flex-wrap: wrap;">
+                    <label class="toggle">
+                      <input id="headless-bot" type="checkbox" checked />
+                      <span>Background</span>
+                    </label>
+                    <div style="flex: 1;"></div>
+                    <button id="start-bot" class="btn btn--primary btn--sm">Start</button>
+                    <button id="stop-bot" class="btn btn--danger btn--sm" disabled>Stop</button>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="schedule-section"
+                    style="padding: 10px; margin-top: 12px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <div class="row" style="align-items: center; flex-wrap: wrap;">
+                      <label class="toggle">
+                        <input id="sch-enabled-bot" type="checkbox" />
+                        <span style="font-size: 13px;">Schedule</span>
+                      </label>
+                      <div id="sch-status-bot" class="pill pill--muted" style="font-size:10px; margin-left: 4px;">OFF
+                      </div>
+
+                      <label class="field"
+                        style="flex-direction: row; align-items: center; gap: 6px; margin-left: auto;">
+                        <span class="field__label" style="margin: 0; font-size: 12px;">Times:</span>
+                        <input id="sch-times-bot" class="input input--sm" type="text" placeholder="09:00, 14:00"
+                          style="width:100%" style="width: 100px; padding: 2px 6px;" />
+                      </label>
+
+                      <div style="flex: 1; min-width: 8px;"></div>
+                      <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                        <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="bot"
+                          style="padding: 4px 8px; font-size: 11px;">Set</button>
+                        <button id="deleteSchedule-bot" class="btn btn--ghost btn--sm" type="button"
+                          style="padding: 4px 8px; font-size: 11px;">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="split-bottom card card--log">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Logs (Profile Updater)</div>
+                </div>
+                <div class="topbar__right"><span id="run-count-bot" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn" data-task="bot">Clear</button>
+                </div>
+              </div>
+              <div class="log" id="log-bot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ SETTINGS PAGE ============ -->
+      <div id="page-settings" class="page" style="display:none">
+        <section class="grid grid--two">
+          <div class="card">
+            <div class="card__header">
+              <div>
+                <div class="card__title">Settings</div>
+                <div class="card__subtitle">Stored in <code>config.json</code></div>
+              </div>
+              <div id="settingsSaved" class="pill pill--muted">Not saved</div>
+            </div>
+
+            <div class="card__body">
+              <div class="row">
+                <label class="field">
+                  <div class="field__label">Naukri email</div>
+                  <input id="cfg-email" class="input" type="email" placeholder="you@example.com" />
+                </label>
+                <label class="field">
+                  <div class="field__label">Naukri password</div>
+                  <input id="cfg-password" class="input" type="password" />
+                </label>
+              </div>
+
+              <div class="row">
+                <label class="field field--full">
+                  <div class="field__label">Job titles (comma-separated)</div>
+                  <input id="cfg-job-titles" class="input" type="text"
+                    placeholder="ML Engineer, AI Engineer, Software Engineer" />
+                </label>
+              </div>
+
+              <div class="row">
+                <label class="field field--full">
+                  <div class="field__label">Resume path</div>
+                  <input id="cfg-resume-path" class="input" type="text" />
+                </label>
+              </div>
+
+              <div class="row">
+                <label class="field field--full">
+                  <div class="field__label">Upload resume (recommended for deploy)</div>
+                  <input id="resumeFile" type="file" accept=".pdf,.doc,.docx" />
+                </label>
+                <button id="uploadResume" class="btn btn--ghost">Upload</button>
+                <button id="deleteResume" class="btn btn--ghost">Clear</button>
+              </div>
+              <div id="resumeStatus" class="note" style="margin-top:4px">—</div>
+
+              <div id="parsedResumeSection"
+                style="display:none; margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05); border-radius: 6px;">
+                <div
+                  style="font-weight: 500; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                  <span>📄 Parsed Resume Data</span>
+                  <span class="pill pill--muted" style="font-size: 10px;">Used by Intl Agents</span>
+                </div>
+                <div id="parsedResumeContent"
+                  style="font-size: 12px; color: var(--color-text-muted); line-height: 1.5; font-family: monospace; white-space: pre-wrap;">
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row">
+                <label class="field">
+                  <div class="field__label">LinkedIn email</div>
+                  <input id="cfg-linkedin-email" class="input" type="email" />
+                </label>
+                <label class="field">
+                  <div class="field__label">LinkedIn password</div>
+                  <input id="cfg-linkedin-password" class="input" type="password" />
+                </label>
+              </div>
+
+              <div class="row">
+                <label class="field field--full">
+                  <div class="field__label">LinkedIn phone (optional)</div>
+                  <input id="cfg-linkedin-phone" class="input" type="text" />
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row">
+                <label class="field">
+                  <div class="field__label">Reed email</div>
+                  <input id="cfg-reed-email" class="input" type="email" />
+                </label>
+                <label class="field">
+                  <div class="field__label">Reed password</div>
+                  <input id="cfg-reed-password" class="input" type="password" />
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row">
+                <label class="field field--full">
+                  <div class="field__label">Current / Expected Annual CTC (₹ INR)</div>
+                  <input id="cfg-ctc-inr" class="input" type="number" min="100000" step="100000" />
+                </label>
+              </div>
+              <div class="note" style="margin-top:4px">
+                Salary is auto-converted for international regions using Purchasing Power Parity (PPP).
+              </div>
+              <div class="row row--actions">
+                <button id="saveSettings" class="btn btn--primary">Save Settings</button>
+                <button id="verifyCronBtn" class="btn btn--ghost" type="button" style="margin-left:auto">🔍 Verify
+                  System Crontab</button>
+              </div>
+
+
+              <div class="divider"></div>
+
+              <div class="card card--danger-zone" style="padding: 14px; border-color: rgba(239, 68, 68, 0.35);">
+                <div class="row" style="align-items: center; justify-content: space-between; gap: 12px;">
+                  <div style="flex: 1;">
+                    <div class="field__label" style="font-size: 14px; font-weight: 700; color: var(--danger);">Emergency Stop</div>
+                    <div class="note" style="margin-top: 4px;">Stops running app tasks, disables all saved schedules, and removes this app's system cron entries. Use the top-bar <strong>Quit</strong> button, <code>./stop.sh</code>, or <code>stop.bat</code> to shut down the dashboard service on port 8787.</div>
+                  </div>
+                  <button id="emergencyStopBtn" class="btn btn--danger" type="button">Stop All Tasks & Schedules</button>
+                </div>
+              </div>
+              <div class="divider"></div>
+
+              <div class="row"
+                style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; align-items: flex-start;">
+                <div style="display: flex; flex-direction: column; flex: 1;">
+                  <div class="field__label" style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Google Drive
+                    Sync</div>
+                  <div class="note" style="margin-top:0; font-size: 12px;" id="driveStatusText">
+                    Connect your Google Drive to safely backup and restore your settings.
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button id="googleAuthBtn" class="btn btn--ghost btn--sm" type="button"
+                    style="border: 1px solid var(--border);">Connect Google Drive</button>
+                  <div id="googleConnectedState" style="display: none; align-items: center; gap: 8px;">
+                    <span style="font-size: 13px; font-weight: 500; color: var(--text);">Connected to Google
+                      Drive</span>
+                    <button id="syncToDriveBtn" class="btn btn--primary btn--sm" type="button">Backup</button>
+                    <button id="syncFromDriveBtn" class="btn btn--ghost btn--sm" type="button"
+                      style="border: 1px solid var(--border);">Restore</button>
+                    <button id="googleDisconnectBtn" class="btn btn--ghost btn--sm" type="button"
+                      style="color: var(--danger);">Disconnect</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div> <!-- ============ LOGS PAGE ============ -->
+      <div id="page-logs" class="page" style="display:none">
+        <section class="card card--log">
+          <div class="card__header">
+            <div>
+              <div class="card__title">Live Logs</div>
+              <div class="card__subtitle">Real-time output from running tasks</div>
+            </div>
+            <div class="topbar__right">
+              <button id="clearLogs" class="btn btn--ghost">Clear</button>
+            </div>
+          </div>
+          <div class="log" id="log"></div>
+        </section>
+      </div>
+
+      <!-- ============ APPLICATIONS PAGE ============ -->
+      <div id="page-applications" class="page" style="display:none">
+        <div class="card" style="margin: 20px;">
+          <div class="card__header" style="justify-content: space-between;">
+            <div class="card__title">Application History</div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="refresh-apps-btn" class="btn btn--sm btn--ghost" title="Refresh Applications">🔄
+                Refresh</button>
+              <select id="apps-agent-filter" class="input input--sm" style="width: auto;">
+                <option value="All">All Agents</option>
+                <option value="Naukri">Naukri</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Indeed">Indeed</option>
+                <option value="Reed Applier">Reed</option>
+                <option value="Crawler">Crawler</option>
+              </select>
+            </div>
+          </div>
+          <div class="card__body" style="padding: 0; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border); background: var(--bg);">
+                  <th style="padding: 12px 16px;">Date</th>
+                  <th style="padding: 12px 16px;">Agent</th>
+                  <th style="padding: 12px 16px;">Company</th>
+                  <th style="padding: 12px 16px;">Role</th>
+                  <th style="padding: 12px 16px;">Link</th>
+                </tr>
+              </thead>
+              <tbody id="appsTableBody">
+                <tr>
+                  <td colspan="5" style="padding: 16px; text-align: center; color: var(--text-muted);">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ OUTREACH PAGE ============ -->
+      <div id="page-outreach" class="page" style="display:none">
+        <div class="card" style="margin: 20px;">
+          <div class="card__header" style="flex-direction: column; align-items: stretch; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="card__title">Recruiter Outreach</div>
+                <div id="status-lead_scraper" class="pill pill--muted" style="margin-left: 8px;">Idle</div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="outreach-search" class="input input--sm" placeholder="Search Company or Email..."
+                  style="width: 200px;" />
+                <select id="outreach-status-filter" class="input input--sm" style="width: auto;">
+                  <option value="All">All Statuses</option>
+                  <option value="Reachout">Pending (Reachout)</option>
+                  <option value="Reached">Reached</option>
+                </select>
+                <button id="mail-all-reachout-btn" class="btn btn--sm btn--primary"
+                  title="Mail all pending reachouts">✉️ Mail All</button>
+                <button id="refresh-outreach-btn" class="btn btn--sm btn--ghost" title="Refresh Leads">🔄
+                  Refresh</button>
+              </div>
+            </div>
+
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-alt); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);">
+              <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <label class="toggle toggle--sm">
+                  <input id="headless-lead_scraper" type="checkbox" checked />
+                  <span>Headless</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 13px; color: var(--text-muted);">Max Posts:</span>
+                  <input type="number" id="target-lead_scraper" class="input input--sm" min="1" max="2000" value="30"
+                    style="width: 60px;" />
+                </div>
+
+                <div style="width: 1px; height: 16px; background: var(--border);"></div>
+
+                <label class="toggle toggle--sm">
+                  <input id="sch-enabled-lead_scraper" type="checkbox" />
+                  <span>Schedule:</span>
+                </label>
+                <input id="sch-times-lead_scraper" class="input input--sm" type="text" placeholder="09:00, 19:00"
+                  style="width: 100px;" />
+                <button class="btn btn--ghost btn--sm save-schedule-btn" data-task="lead_scraper">Set Schedule</button>
+                <button id="deleteSchedule-lead_scraper" class="btn btn--ghost btn--sm" type="button">Del</button>
+                <div id="sch-status-lead_scraper" class="pill pill--muted" style="font-size:11px">OFF</div>
+              </div>
+              <div style="display: flex; gap: 8px; margin-left: auto;">
+                <button id="start-lead_scraper" class="btn btn--sm btn--primary">Start</button>
+                <button id="stop-lead_scraper" class="btn btn--sm btn--danger">Stop</button>
+              </div>
+            </div>
+          </div>
+          <div class="card__body" style="padding: 0; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border); background: var(--bg);">
+                  <th style="padding: 12px 16px; width: 10%;">Date</th>
+                  <th style="padding: 12px 16px; width: 15%;">Company / Name</th>
+                  <th style="padding: 12px 16px; width: 40%;">Post Content</th>
+                  <th style="padding: 12px 16px; width: 15%;">Email ID</th>
+                  <th style="padding: 12px 16px; width: 20%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="outreachTableBody">
+                <tr>
+                  <td colspan="5" style="padding: 16px; text-align: center; color: var(--text-muted);">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card card--log" style="margin: 20px; height: 400px; display: flex; flex-direction: column;">
+          <div class="card__header">
+            <div>
+              <div class="card__title">Live Logs (Lead Scraper)</div>
+            </div>
+            <div class="topbar__right">
+              <span id="run-count-lead_scraper" class="text-muted" style="font-size: 11px; margin-right: 8px; cursor: help;"></span><button class="btn btn--ghost clear-logs-btn" data-task="lead_scraper">Clear</button>
+            </div>
+          </div>
+          <div class="log" id="log-lead_scraper"></div>
+        </div>
+
+      </div>
+      <!-- ============ AI AGENT PAGE ============ -->
+      <div id="page-agent" class="page" style="display:none">
+
+        <!-- Hero / Header -->
+        <section class="card" style="margin-bottom: 16px;">
+          <div class="card__header">
+            <div>
+              <div class="card__title" id="heroTitle" style="font-size: 20px;">AI Job Application Agent</div>
+              <div class="card__subtitle" id="heroSubtitle" style="margin-top: 4px;">Powered by local open-source LLM —
+                100% free, runs on your machine</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <div class="pill pill--muted" id="heroModel">🧠 Model: Loading...</div>
+              <div class="pill pill--muted" id="ollamaBadge">⏳ Ollama</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Stats Grid -->
+        <section style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 16px;"
+          id="statsGrid">
+          <div class="card" style="text-align: center; padding: 16px;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--success);" id="statApplied">0</div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px;">Applied Today</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="statAppliedTotal">0 total</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 16px;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);" id="statAnalyzed">0</div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px;">Analyzed</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">by AI</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 16px;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--danger);" id="statSkipped">0</div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px;">Skipped</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">low match</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 16px;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--text);" id="statAvgScore">—</div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px;">Avg Match</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">score %</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 16px;">
+            <div style="font-size: 28px; font-weight: 700; color: #f59e0b;" id="statPending">0</div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--text); margin-top: 4px;">Pending</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">review queue</div>
+          </div>
+        </section>
+
+        <div class="split-layout">
+          <!-- Left side: Controls & Activity -->
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+            <!-- Controls -->
+            <div class="card">
+              <div class="card__header">
+                <div class="card__title">Agent Controls</div>
+              </div>
+              <div class="card__body">
+                <div class="row" style="flex-wrap: wrap;">
+                  <label class="field">
+                    <div class="field__label">Platform</div>
+                    <select id="platformSelect" class="input">
+                      <option value="naukri">Naukri</option>
+                      <option value="linkedin">LinkedIn</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <div class="field__label">Target</div>
+                    <input type="number" id="targetInput" class="input" value="20" min="1" max="200"
+                      style="width: 80px;">
+                  </label>
+                  <label class="field">
+                    <div class="field__label">Mode</div>
+                    <select id="modeSelect" class="input">
+                      <option value="auto">Auto Apply</option>
+                      <option value="review">Review First</option>
+                      <option value="dry_run">Dry Run</option>
+                    </select>
+                  </label>
+                  <label class="toggle" style="margin-top: 24px;">
+                    <input type="checkbox" id="headlessCheck" checked>
+                    <span>Headless</span>
+                  </label>
+                </div>
+                <div class="divider"></div>
+                <div class="row row--actions">
+                  <button class="btn btn--primary" id="btnStart" onclick="startAgent()">▶ Start Agent</button>
+                  <button class="btn btn--danger" id="btnStop" onclick="stopAgent()" disabled>⏹ Stop</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="card card--log" style="flex: 1;">
+              <div class="card__header">
+                <div>
+                  <div class="card__title">Live Activity</div>
+                  <div class="card__subtitle" id="activityCurrent"
+                    style="margin-top: 4px; font-family: monospace; color: var(--accent);">Agent is idle</div>
+                </div>
+                <div class="pill pill--muted" id="activityIndicator">Idle</div>
+              </div>
+              <div class="log" id="activityFeed" style="padding: 12px; height: 300px; font-size: 12px;">
+                <div style="color: var(--text-muted); font-style: italic;" class="feed-empty">Start the agent to see
+                  activity here</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right side: Tabs -->
+          <div style="flex: 1; display: flex; flex-direction: column;" class="card">
+            <div class="card__header" style="padding-bottom: 0; border-bottom: 1px solid var(--border);">
+              <nav class="tabbar sub-tabbar" style="margin-bottom: -1px;">
+                <button class="agent-tab tab--active" onclick="switchAgentTab('decisions')" id="tab-btn-decisions"
+                  style="background:none; border:none; padding: 8px 16px; color:var(--text); cursor:pointer; border-bottom: 2px solid var(--accent);">🧠
+                  Decisions</button>
+                <button class="agent-tab" onclick="switchAgentTab('queue')" id="tab-btn-queue"
+                  style="background:none; border:none; padding: 8px 16px; color:var(--text-muted); cursor:pointer;">📋
+                  Review Queue</button>
+                <button class="agent-tab" onclick="switchAgentTab('applied')" id="tab-btn-applied"
+                  style="background:none; border:none; padding: 8px 16px; color:var(--text-muted); cursor:pointer;">✅
+                  Applied</button>
+              </nav>
+            </div>
+            <div class="card__body" style="padding: 0; flex: 1; overflow-y: auto;">
+              <div id="tab-decisions" class="agent-tab-content active" style="padding: 16px;">
+                <div id="decisionsList" style="font-size: 13px; color: var(--text-muted);">
+                  <div class="feed-empty">No decisions yet — start the agent</div>
+                </div>
+              </div>
+              <div id="tab-queue" class="agent-tab-content" style="display: none; padding: 16px;">
+                <div id="queueList" style="font-size: 13px; color: var(--text-muted);">
+                  <div class="feed-empty">No jobs in review queue</div>
+                </div>
+              </div>
+              <div id="tab-applied" class="agent-tab-content" style="display: none; padding: 16px;">
+                <div id="appliedList" style="font-size: 13px; color: var(--text-muted);">
+                  <div class="feed-empty">No applications yet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Login Overlay -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <h2>Job Applications</h2>
+      <p>Please log in to continue</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" required />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" required />
+        </div>
+        <div id="loginError" style="color:var(--danger);font-size:0.875rem;margin-bottom:1rem;display:none">Invalid
+          credentials</div>
+        <button type="submit" class="btn btn--primary" style="width:100%">Log In</button>
+      </form>
+      <div id="googleSignInSeparator"
+        style="margin: 1rem 0; text-align: center; color: var(--text-muted); font-size: 0.875rem;">OR</div>
+      <button id="googleLoginBtn" class="btn btn--outline" type="button"
+        style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+        <svg style="width:18px;height:18px;" viewBox="0 0 24 24">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4" />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853" />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            fill="#FBBC05" />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335" />
+        </svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js?v=9"></script>
+  <script src="agent.js?v=3"></script>
+</body>
+
+</html>

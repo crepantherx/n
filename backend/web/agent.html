@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent — Autonomous Job Applier</title>
+    <meta name="description" content="AI-powered autonomous job application agent running locally with open-source LLM">
+    <link rel="stylesheet" href="/agent.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="agent-nav">
+        <a href="/" class="nav-back">← Dashboard</a>
+        <div class="nav-title">
+            <span class="nav-icon">🤖</span>
+            <span>AI Agent</span>
+        </div>
+        <div class="nav-status" id="navStatus">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Checking...</span>
+        </div>
+    </nav>
+
+    <main class="agent-main">
+        <!-- Hero Section -->
+        <section class="hero-section" id="heroSection">
+            <div class="hero-content">
+                <h1 id="heroTitle">AI Job Application Agent</h1>
+                <p class="hero-subtitle" id="heroSubtitle">Powered by local open-source LLM — 100% free, runs on your machine</p>
+                <div class="hero-model" id="heroModel">
+                    <span class="model-badge">🧠 Model: Loading...</span>
+                    <span class="ollama-badge" id="ollamaBadge">⏳ Ollama</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Cards -->
+        <section class="stats-grid" id="statsGrid">
+            <div class="stat-card stat-applied">
+                <div class="stat-value" id="statApplied">0</div>
+                <div class="stat-label">Applied Today</div>
+                <div class="stat-sub" id="statAppliedTotal">0 total</div>
+            </div>
+            <div class="stat-card stat-analyzed">
+                <div class="stat-value" id="statAnalyzed">0</div>
+                <div class="stat-label">Analyzed</div>
+                <div class="stat-sub">by AI</div>
+            </div>
+            <div class="stat-card stat-skipped">
+                <div class="stat-value" id="statSkipped">0</div>
+                <div class="stat-label">Skipped</div>
+                <div class="stat-sub">low match</div>
+            </div>
+            <div class="stat-card stat-score">
+                <div class="stat-value" id="statAvgScore">—</div>
+                <div class="stat-label">Avg Match</div>
+                <div class="stat-sub">score %</div>
+            </div>
+            <div class="stat-card stat-pending">
+                <div class="stat-value" id="statPending">0</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-sub">review queue</div>
+            </div>
+        </section>
+
+        <!-- Controls -->
+        <section class="controls-section">
+            <div class="controls-card">
+                <h2>Agent Controls</h2>
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label for="platformSelect">Platform</label>
+                        <select id="platformSelect">
+                            <option value="naukri">Naukri</option>
+                            <option value="linkedin">LinkedIn</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="targetInput">Target</label>
+                        <input type="number" id="targetInput" value="20" min="1" max="200">
+                    </div>
+                    <div class="control-group">
+                        <label for="modeSelect">Mode</label>
+                        <select id="modeSelect">
+                            <option value="auto">Auto Apply</option>
+                            <option value="review">Review First</option>
+                            <option value="dry_run">Dry Run</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="headlessCheck" checked>
+                            <span>Headless</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="controls-actions">
+                    <button class="btn btn-start" id="btnStart" onclick="startAgent()">
+                        <span class="btn-icon">▶</span> Start Agent
+                    </button>
+                    <button class="btn btn-stop" id="btnStop" onclick="stopAgent()" disabled>
+                        <span class="btn-icon">⏹</span> Stop
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Activity & Activity Feed -->
+        <section class="activity-section">
+            <div class="activity-card">
+                <div class="activity-header">
+                    <h2>Live Activity</h2>
+                    <span class="activity-indicator" id="activityIndicator"></span>
+                </div>
+                <div class="activity-current" id="activityCurrent">
+                    Agent is idle
+                </div>
+                <div class="activity-feed" id="activityFeed">
+                    <div class="feed-empty">Start the agent to see activity here</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs: Decisions / Queue / Applied -->
+        <section class="tabs-section">
+            <div class="tab-bar">
+                <button class="tab active" onclick="switchTab('decisions')">🧠 AI Decisions</button>
+                <button class="tab" onclick="switchTab('queue')">📋 Review Queue</button>
+                <button class="tab" onclick="switchTab('applied')">✅ Applied Jobs</button>
+            </div>
+
+            <!-- Decisions Tab -->
+            <div class="tab-content active" id="tab-decisions">
+                <div class="decisions-list" id="decisionsList">
+                    <div class="feed-empty">No decisions yet — start the agent</div>
+                </div>
+            </div>
+
+            <!-- Queue Tab -->
+            <div class="tab-content" id="tab-queue">
+                <div class="queue-list" id="queueList">
+                    <div class="feed-empty">No jobs in review queue</div>
+                </div>
+            </div>
+
+            <!-- Applied Tab -->
+            <div class="tab-content" id="tab-applied">
+                <div class="applied-list" id="appliedList">
+                    <div class="feed-empty">No applications yet</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/agent.js"></script>
+</body>
+</html>

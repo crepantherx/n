@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+config.json
+backend/users.json
+*.pem
+*.key
+*.p12
+
+# Runtime data (kept local per machine/user)
+data/*
+!data/.gitkeep
+!data/README.md
+files/*
+!files/uk_sponsors.csv
+
+# Logs, pid files, browser/debug artifacts
+*.log
+backend.pid
+backend_output.log
+*.pid
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*dump*.html
+*debug*.html
+linkedin_page_source.html
+
+# Stats/cache/db files
+stats.json
+bot_stats.json
+*_stats.json
+applications_log.json
+outreach_leads.json
+*.db
+*.sqlite
+*.sqlite3
+
+# Vercel local metadata
+.vercel/
+
+# Build/distribution
+build/
+dist/
+*.egg-info/
+*.app/
+*.zip
+*.tar.gz
+NaukriJobApplier.app/
+NaukriJobApplier-Distribution/
+
+# Frontend/dependency caches
+node_modules/
+web-ui/node_modules/
+web-ui/.vite/
+web-ui/dist/
+.playwright/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.bak
+scratch.py
+.git_index_html

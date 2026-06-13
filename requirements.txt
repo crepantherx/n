@@ -1,0 +1,6 @@
+playwright==1.48.0
+python-dotenv==1.0.0
+fastapi==0.121.3
+python-multipart==0.0.9
+uvicorn==0.38.0
+pypdf>=4.0.0
